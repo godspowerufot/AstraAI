@@ -1,174 +1,50 @@
-import OpenAIApi from 'openai';
-import dotenv from 'dotenv';
+const chatContainer = document.querySelector('.chat-container');
+const chatInput = document.getElementById('chat-input');
+const sendBtn = document.getElementById('send-btn');
 
-dotenv.config(); // Load environment variables
+const API_URL = 'https://api.openai.com/v1/chat/completions';
+const API_KEY = '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'; // Replace with your OpenAI API key
 
-const API_KEY = process.env.API_KEY
-const openai = new OpenAIApi({
-    apiKey:API_KEY,
-  });
-const chatInput = document.querySelector("#chat-input");
-const sendButton = document.querySelector("#send-btn");
-const chatContainer = document.querySelector(".chat-container");
-const themeButton = document.querySelector("#theme-btn");
-const deleteButton = document.querySelector("#delete-btn");
-
-let userText = null;
-
-const loadDataFromLocalstorage = () => {
-    // Load saved chats and theme from local storage and apply/add on the page
-    const themeColor = localStorage.getItem("themeColor");
-
-    document.body.classList.toggle("light-mode", themeColor === "light_mode");
-    themeButton.innerText = document.body.classList.contains("light-mode") ? "dark_mode" : "light_mode";
-
-    const defaultText = `<div class="default-text">
-                            <h1>ChatGPT Clone</h1>
-                            <p>Start a conversation and explore the power of AI.<br> Your chat history will be displayed here.</p>
-                        </div>`
-
-    chatContainer.innerHTML = localStorage.getItem("all-chats") || defaultText;
-    chatContainer.scrollTo(0, chatContainer.scrollHeight); // Scroll to bottom of the chat container
+function addChatBubble(message, isIncoming = false) {
+  const chatBubble = document.createElement('div');
+  chatBubble.classList.add('chat', isIncoming ? 'incoming' : 'outgoing');
+  chatBubble.innerHTML = `<p>${message}</p>`;
+  chatContainer.appendChild(chatBubble);
+  chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
-const createChatElement = (content, className) => {
-    // Create new div and apply chat, specified class and set html content of div
-    const chatDiv = document.createElement("div");
-    chatDiv.classList.add("chat", className);
-    chatDiv.innerHTML = content;
-    return chatDiv; // Return the created chat div
+async function getResponse(prompt) {
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+    const data = await response.json();
+    return data.choices[0].message.content;
+  } catch (error) {
+    return 'Error: Unable to fetch response.';
+  }
 }
 
-async function generateChatResponse(userPrompt) {
-    try {
-        const response = await openai.chat.completions.create({
-            model: "gpt-4", // Specify the GPT-4 model
-            messages: [
-                {
-                    role: "user",
-                    content: userPrompt,
-                },
-            ],
-            max_tokens: 2048,
-            temperature: 0.7,
-        });
-
-        // Extract the generated text from the response
-        const generatedText = response.choices[0].message.content.trim();
-        console.log("📝 Generated Response:", generatedText);
-        return generatedText;
-    } catch (error) {
-        console.error("❌ Error generating response:", error);
-        return "Oops! Something went wrong while retrieving the response. Please try again.";
-    }
-}
-
-const getChatResponse = async (incomingChatDiv) => {
-    const userPrompt = userText; // Assume `userText` is defined elsewhere
-    const pElement = document.createElement("p");
-
-    try {
-        // Use the shared function to generate a response
-        const generatedText = await generateChatResponse(userPrompt);
-
-        // Set the generated text as the paragraph element's content
-        pElement.textContent = generatedText;
-    } catch (error) {
-        // Add error class to the paragraph element and set error text
-        pElement.classList.add("error");
-        pElement.textContent = "Oops! Something went wrong while retrieving the response. Please try again.";
-    }
-
-    // Remove the typing animation, append the paragraph element, and save chats to local storage
-    incomingChatDiv.querySelector(".typing-animation").remove();
-    incomingChatDiv.querySelector(".chat-details").appendChild(pElement);
-    localStorage.setItem("all-chats", chatContainer.innerHTML);
-    chatContainer.scrollTo(0, chatContainer.scrollHeight);
-};
-
-
-const copyResponse = (copyBtn) => {
-    // Copy the text content of the response to the clipboard
-    const reponseTextElement = copyBtn.parentElement.querySelector("p");
-    navigator.clipboard.writeText(reponseTextElement.textContent);
-    copyBtn.textContent = "done";
-    setTimeout(() => copyBtn.textContent = "content_copy", 1000);
-}
-
-const showTypingAnimation = () => {
-    // Display the typing animation and call the getChatResponse function
-    const html = `<div class="chat-content">
-                    <div class="chat-details">
-                        <img src="images/chatbot.jpg" alt="chatbot-img">
-                        <div class="typing-animation">
-                            <div class="typing-dot" style="--delay: 0.2s"></div>
-                            <div class="typing-dot" style="--delay: 0.3s"></div>
-                            <div class="typing-dot" style="--delay: 0.4s"></div>
-                        </div>
-                    </div>
-                    <span onclick="copyResponse(this)" class="material-symbols-rounded">content_copy</span>
-                </div>`;
-    // Create an incoming chat div with typing animation and append it to chat container
-    const incomingChatDiv = createChatElement(html, "incoming");
-    chatContainer.appendChild(incomingChatDiv);
-    chatContainer.scrollTo(0, chatContainer.scrollHeight);
-    getChatResponse(incomingChatDiv);
-}
-
-const handleOutgoingChat = () => {
-    userText = chatInput.value.trim(); // Get chatInput value and remove extra spaces
-    if(!userText) return; // If chatInput is empty return from here
-
-    // Clear the input field and reset its height
-    chatInput.value = "";
-    chatInput.style.height = `${initialInputHeight}px`;
-
-    const html = `<div class="chat-content">
-                    <div class="chat-details">
-                        <img src="images/user.jpg" alt="user-img">
-                        <p>${userText}</p>
-                    </div>
-                </div>`;
-
-    // Create an outgoing chat div with user's message and append it to chat container
-    const outgoingChatDiv = createChatElement(html, "outgoing");
-    chatContainer.querySelector(".default-text")?.remove();
-    chatContainer.appendChild(outgoingChatDiv);
-    chatContainer.scrollTo(0, chatContainer.scrollHeight);
-    setTimeout(showTypingAnimation, 500);
-}
-
-deleteButton.addEventListener("click", () => {
-    // Remove the chats from local storage and call loadDataFromLocalstorage function
-    if(confirm("Are you sure you want to delete all the chats?")) {
-        localStorage.removeItem("all-chats");
-        loadDataFromLocalstorage();
-    }
+sendBtn.addEventListener('click', async () => {
+  const userPrompt = chatInput.value.trim();
+  if (!userPrompt) return;
+  addChatBubble(userPrompt);
+  chatInput.value = '';
+  const botResponse = await getResponse(userPrompt);
+  addChatBubble(botResponse, true);
 });
 
-themeButton.addEventListener("click", () => {
-    // Toggle body's class for the theme mode and save the updated theme to the local storage 
-    document.body.classList.toggle("light-mode");
-    localStorage.setItem("themeColor", themeButton.innerText);
-    themeButton.innerText = document.body.classList.contains("light-mode") ? "dark_mode" : "light_mode";
+chatInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendBtn.click();
+  }
 });
-
-const initialInputHeight = chatInput.scrollHeight;
-
-chatInput.addEventListener("input", () => {   
-    // Adjust the height of the input field dynamically based on its content
-    chatInput.style.height =  `${initialInputHeight}px`;
-    chatInput.style.height = `${chatInput.scrollHeight}px`;
-});
-
-chatInput.addEventListener("keydown", (e) => {
-    // If the Enter key is pressed without Shift and the window width is larger 
-    // than 800 pixels, handle the outgoing chat
-    if (e.key === "Enter" && !e.shiftKey && window.innerWidth > 800) {
-        e.preventDefault();
-        handleOutgoingChat();
-    }
-});
-
-loadDataFromLocalstorage();
-sendButton.addEventListener("click", handleOutgoingChat);
