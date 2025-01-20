@@ -3,7 +3,7 @@ const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 
 const API_URL = 'https://api.openai.com/v1/chat/completions';
-const API_KEY = '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'; // Replace with your OpenAI API key
+const API_KEY ="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"
 
 function addChatBubble(message, isIncoming = false) {
   const chatBubble = document.createElement('div');
