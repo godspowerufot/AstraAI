@@ -3,7 +3,7 @@ const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 
 const API_URL = 'https://api.openai.com/v1/chat/completions';
-const API_KEY ="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"
+const API_KEY ="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"
 
 function addChatBubble(message, isIncoming = false) {
   const chatBubble = document.createElement('div');
@@ -46,5 +46,18 @@ chatInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
     sendBtn.click();
+  }
+});
+const chatIcon = document.getElementById("chat-icon");
+const chatbotContainer = document.getElementById("chatbot-container");
+
+// Toggle chatbot state
+chatIcon.addEventListener("click", () => {
+  if (chatbotContainer.classList.contains("inactive")) {
+    chatbotContainer.classList.remove("inactive");
+    chatbotContainer.classList.add("active");
+  } else {
+    chatbotContainer.classList.remove("active");
+    chatbotContainer.classList.add("inactive");
   }
 });
