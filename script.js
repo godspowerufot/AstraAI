@@ -3,9 +3,9 @@ const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 
 // Use the CORS proxy URL
-const API_URL = 'https://corsproxy.io/?key=b74c2d34&url=https://api.venice.ai/api/v1/chat/completions';
+const API_URL = 'https://api.venice.ai/api/v1';
 const API_KEY = "L1D2Pe5ThJmfeeCR-ezzM-ktO4DaSht0rj-CKAAkRI";
-https://example.com
+
 function addChatBubble(message, isIncoming = false) {
   const chatBubble = document.createElement('div');
   chatBubble.classList.add('chat', isIncoming ? 'incoming' : 'outgoing');
