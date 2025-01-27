@@ -13,7 +13,7 @@ function addChatBubble(message, isIncoming = false) {
   chatContainer.appendChild(chatBubble);
   chatContainer.scrollTop = chatContainer.scrollHeight;
 }
-
+// create
 async function getResponse(prompt) {
   try {
     const response = await fetch(API_URL, {
