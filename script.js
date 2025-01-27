@@ -2,9 +2,10 @@ const chatContainer = document.querySelector('.chat-container');
 const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 
-const API_URL = 'https://api.openai.com/v1/chat/completions';
-const API_KEY ="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"
-
+// Use the CORS proxy URL
+const API_URL = 'https://corsproxy.io/?key=b74c2d34&url=https://api.venice.ai/api/v1/chat/completions';
+const API_KEY = "L1D2Pe5ThJmfeeCR-ezzM-ktO4DaSht0rj-CKAAkRI";
+https://example.com
 function addChatBubble(message, isIncoming = false) {
   const chatBubble = document.createElement('div');
   chatBubble.classList.add('chat', isIncoming ? 'incoming' : 'outgoing');
@@ -22,13 +23,14 @@ async function getResponse(prompt) {
         Authorization: `Bearer ${API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model: 'dolphin-2.9.2-qwen2-72b',
         messages: [{ role: 'user', content: prompt }],
       }),
     });
     const data = await response.json();
     return data.choices[0].message.content;
   } catch (error) {
+    console.error('Error:', error);
     return 'Error: Unable to fetch response.';
   }
 }
@@ -48,6 +50,7 @@ chatInput.addEventListener('keydown', (e) => {
     sendBtn.click();
   }
 });
+
 const chatIcon = document.getElementById("chat-icon");
 const chatbotContainer = document.getElementById("chatbot-container");
 
